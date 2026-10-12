@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Torre de Hanói</title>
+<style>
+:root{--bg:#fff3b8;--fg:#6b5632;--card:#fffdf0;--mut:#a8946a;--rod:#8a6d4b;--acc:#f2c75c;--bad:#d9775b;--line:#f0e2b0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+
+:root{color-scheme:light}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:linear-gradient(#fffbea,#fff6d6) fixed}
+main{max-width:1200px;margin:0 auto;padding:12px}
+h1{font-size:1.3rem;margin:0 0 12px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+button{font:inherit;padding:8px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--fg);cursor:pointer}
+button.on{background:var(--acc);color:#5a4519;border-color:var(--acc)}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
+.stat b{display:block;font-size:1.5rem}
+.stat span{font-size:.75rem;color:var(--mut)}
+.board{--dh:clamp(32px,6.5vh,56px);--rh:calc(var(--n,4)*(var(--dh) + 4px) + var(--dh));display:flex;gap:12px;border:1px solid var(--line);border-radius:14px;padding:12px 12px 30px;background:linear-gradient(#ecd0a0,#d3aa6c) bottom/100% 30px no-repeat,var(--card)}
+.peg{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;cursor:pointer;border-radius:8px;height:calc(var(--rh) + var(--dh) + 24px)}
+.air{height:calc(var(--dh) + 24px);display:flex;align-items:flex-start;justify-content:center;width:100%}
+.stack{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;width:100%}
+.peg::before{content:"";position:absolute;bottom:0;width:clamp(12px,2vw,20px);height:var(--rh);background:linear-gradient(90deg,#d9b983,#f1dcb3 45%,#d2ae76);border-radius:6px 6px 0 0}
+.peg::after{content:none}
+.peg.sel{background:none}
+.peg.err{animation:sh .35s;outline:2px solid var(--bad)}
+@keyframes sh{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.disk{height:var(--dh);margin-top:4px;border-radius:calc(var(--dh)/2);position:relative;z-index:1;box-shadow:inset 0 -5px 0 rgba(0,0,0,.18),inset 0 4px 0 rgba(255,255,255,.25),0 2px 3px rgba(0,0,0,.3)}
+.air .disk{margin-top:0}
+.disk.lift{transform:scale(1.07);filter:brightness(1.12);box-shadow:inset 0 -5px 0 rgba(0,0,0,.18),inset 0 4px 0 rgba(255,255,255,.35),0 0 0 3px #fff,0 0 0 5px #d99a2b,0 10px 14px rgba(0,0,0,.35);animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(46px) scale(1)}to{transform:translateY(0) scale(1.07)}}
+button:disabled{opacity:.5;cursor:default}
+.board.off{opacity:.5;pointer-events:none}
+.fim{display:flex;justify-content:flex-end;margin-top:40px}
+#start-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:calc(100vh - 40px)}
+#start-screen p{color:var(--mut);margin:0 0 26px}
+.st{font-size:2.1rem;margin:26px 0 8px}
+.toy{position:relative;width:min(260px,70vw);height:262px}
+.tbase{position:absolute;bottom:0;left:0;right:0;height:26px;border-radius:13px;background:linear-gradient(#ecd0a0,#d3aa6c);box-shadow:0 3px 6px rgba(0,0,0,.2)}
+.tpeg{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);width:16px;height:236px;border-radius:8px 8px 0 0;background:linear-gradient(90deg,#d9b983,#f1dcb3 45%,#d2ae76)}
+.tstack{position:absolute;bottom:24px;left:0;right:0;display:flex;flex-direction:column;align-items:center}
+.tstack i{display:block;height:28px;margin-top:3px;border-radius:14px;box-shadow:inset 0 -5px 0 rgba(0,0,0,.18),inset 0 4px 0 rgba(255,255,255,.25),0 2px 3px rgba(0,0,0,.3)}
+.tstack i:first-child{animation:bob 2.2s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+#btn-start{font-size:1.25rem;font-weight:700;padding:14px 48px;border-radius:32px;background:var(--acc);color:#5a4519;border:none;box-shadow:0 5px 0 #d9aa3c}
+#btn-start:active{transform:translateY(3px);box-shadow:0 2px 0 #d9aa3c}
+.msg{min-height:1.5em;margin:10px 0;color:var(--mut);font-size:.9rem}
+.res{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:12px}
+.res[hidden]{display:none}
+.res pre{white-space:pre-wrap;font:inherit;margin:0 0 8px}
+</style>
+</head>
+<body>
+<main>
+<div id="start-screen">
+  <div class="toy">
+    <div class="tpeg"></div>
+    <div class="tstack">
+      <i style="width:34%;background:#5b2a3c"></i><i style="width:46%;background:#2f55a8"></i><i style="width:58%;background:#4c9a2a"></i><i style="width:70%;background:#f4c20d"></i><i style="width:82%;background:#ee7a1c"></i><i style="width:94%;background:#d62828"></i>
+    </div>
+    <div class="tbase"></div>
+  </div>
+  <h1 class="st">Torre de Hanói</h1>
+  <p id="start-text">quando estiver pronto, toque em começar</p>
+  <p id="start-error" style="display:none;color:var(--bad)"></p>
+  <button id="btn-start">começar</button>
+</div>
+<div id="test-area" style="display:none">
+<h1>Torre de Hanói</h1>
+<div class="bar" id="lv">
+  <button data-n="4" class="on">4 peças</button>
+  <button data-n="5">5 peças</button>
+  <button data-n="6">6 peças</button>
+  <button id="rs" style="margin-left:auto">Reiniciar</button>
+</div>
+<div class="board" id="bd"></div>
+<div class="msg" id="msg">Toque em um pino para pegar o disco do topo e depois no pino de destino. Objetivo: levar todos os discos para o pino da direita.</div>
+<div class="res" id="res" hidden>
+  <pre id="rt"></pre>
+  <button id="cp">Copiar resultado</button>
+</div>
+<div class="fim"><button id="fin">Finalizar teste</button></div>
+</div>
+</main>
+<script>
+// Integração com o hub central de testes (Supabase), mesmo padrão do compinst.
+const SUPABASE_URL="https://bjzmlvsskhfrkvblvsjj.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJqem1sdnNza2hmcmt2Ymx2c2pqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODczMzc1MTYsImV4cCI6MjEwMjkxMzUxNn0.9MaZvYnwIh8HsdJXKOc5NT5DNCTtzH5LR6-QZs27Et0";
+const SITE_ID="hanoi";
+const FUNCTIONS_BASE=SUPABASE_URL+"/functions/v1/";
+const TOKEN=(()=>{const q=new URLSearchParams(location.search);return q.get("t")||q.get("token")})();
+async function callFunction(slug,body){
+  try{const r=await fetch(FUNCTIONS_BASE+slug,{method:"POST",headers:{"Content-Type":"application/json","apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+SUPABASE_ANON_KEY},body:JSON.stringify(body)});return await r.json()}
+  catch(e){console.error("Falha ao chamar "+slug,e);return null}}
+async function validarToken(){
+  if(!TOKEN)return{ok:true,semToken:true};
+  const r=await callFunction("validar-token",{token:TOKEN,site:SITE_ID});
+  return r||{ok:false,motivo:"Não foi possível validar o link."}}
+function registrarTentativa(t){if(!TOKEN)return;callFunction("registrar-print",{token:TOKEN,etapa:"tentativa"+t.tentativa,dados_cubo:t})}
+function concluirHub(dados){if(!TOKEN)return;callFunction("concluir-sessao",{token:TOKEN,dados:dados})}
+const LOG=[],ATT=[];let tFim=0,finalizado=false,fz=null;const COL=["#5b2a3c","#2f55a8","#4c9a2a","#f4c20d","#ee7a1c","#d62828"];
+let n=4,pos,sel=null,mov=0,inf=0,des=0,t0=null,tmr=null,done=false,D=new Map();
+const $=id=>document.getElementById(id);
+const key=p=>p.reduce((a,x,i)=>a+x*3**i,0);
+function tops(s){const t=[undefined,undefined,undefined];for(let i=s.length-1;i>=0;i--)t[s[i]]=i;return t}
+function neighbors(s){const t=tops(s),out=[];
+  for(let f=0;f<3;f++){if(t[f]===undefined)continue;
+    for(let g=0;g<3;g++){if(g===f)continue;
+      if(t[g]===undefined||t[g]>t[f]){const c=s.slice();c[t[f]]=g;out.push(c)}}}
+  return out}
+function buildDist(){D=new Map();const g=Array(n).fill(2);D.set(key(g),0);const q=[g];
+  for(let h=0;h<q.length;h++){const s=q[h],d=D.get(key(s));
+    for(const c of neighbors(s)){const k=key(c);if(!D.has(k)){D.set(k,d+1);q.push(c)}}}}
+function fmt(ms){const s=Math.floor(ms/1000);return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function reset(){
+  if(finalizado)return;
+  if(LOG.length)guardar();
+  clearInterval(tmr);tmr=null;t0=null;done=false;sel=null;mov=inf=des=0;
+  pos=Array(n).fill(0);LOG.length=0;buildDist();$("res").hidden=true;
+  $("msg").textContent="Toque em um pino para pegar o disco do topo e depois no pino de destino. Objetivo: levar todos os discos para o pino da direita.";
+  render()}
+function render(){
+  const bd=$("bd");bd.innerHTML="";bd.style.setProperty("--n",n);const t=tops(pos);
+  for(let p=0;p<3;p++){
+    const el=document.createElement("div");el.className="peg"+(sel===p?" sel":"");el.dataset.p=p;
+    const ds=[];for(let i=0;i<n;i++)if(pos[i]===p)ds.push(i);
+    ds.sort((a,b)=>a-b);
+    const air=document.createElement("div");air.className="air";const st=document.createElement("div");st.className="stack";el.appendChild(air);el.appendChild(st);
+    for(const i of ds){const d=document.createElement("div");
+      d.className="disk"+(sel===p&&i===t[p]?" lift":"");
+      d.style.width=(36+i*(64/(n-1)))+"%";
+      d.style.background=COL[i];d.onclick=e=>{e.stopPropagation();clickDisk(p,i)};
+      (sel===p&&i===t[p]?air:st).appendChild(d)}
+    el.onclick=()=>click(p);bd.appendChild(el)}
+  }
+function startTimer(){if(!t0)t0=Date.now()}
+function click(p){
+  if(done)return;const t=tops(pos);
+  if(sel===null){if(t[p]===undefined)return;startTimer();sel=p;render();return}
+  if(sel===p){des++;mov++;LOG.push({tipo:"mov",desvio:"mesmo_pino",fora_otimo:true,disco:t[p]+1,de:p,para:p,t:Date.now()-t0});sel=null;render();return}
+  const disk=t[sel];
+  if(t[p]!==undefined&&t[p]<disk){
+    inf++;LOG.push({tipo:"infracao",motivo:"disco_maior_sobre_menor",disco:disk+1,de:sel,para:p,t:Date.now()-t0});sel=null;render();
+    const el=document.querySelector(`.peg[data-p="${p}"]`);el.classList.add("err");
+    return}
+  const before=D.get(key(pos));
+  pos[disk]=p;LOG.push({tipo:"mov",disco:disk+1,de:sel,para:p,t:Date.now()-t0});sel=null;mov++;
+  const after=D.get(key(pos));
+  const cur=LOG[LOG.length-1],prev=LOG.slice(0,-1).reverse().find(x=>x.tipo==="mov");
+  cur.fora_otimo=after!==before-1;
+  if(prev&&prev.disco===cur.disco&&prev.de===cur.para&&prev.para===cur.de){des++;cur.desvio="movimento_redundante"}
+
+  render();
+  if(pos.every(x=>x===2))finish()}
+function guardar(){const s=snapshot();ATT.push(s);window.resultadoHanoi={tentativas:[...ATT]};registrarTentativa(s)}
+function snapshot(){const k=pos.length;return{tentativa:ATT.length+1,pecas:k,concluida:done,movimentos:mov,infracoes:inf,desvios:des,fora_otimo:LOG.filter(x=>x.fora_otimo).length,minimo:2**k-1,tempo_ms:done?tFim:(LOG.length?LOG[LOG.length-1].t:0),detalhe:LOG.slice()}}
+function finalizar(){
+  if(finalizado)return;
+  if(LOG.length)guardar();
+  window.resultadoHanoi={tentativas:ATT.slice()};concluirHub(window.resultadoHanoi);
+  finalizado=true;done=true;sel=null;clearInterval(tmr);render();
+  document.querySelectorAll("button").forEach(b=>b.disabled=true);
+  $("bd").classList.add("off");$("msg").textContent="Teste finalizado."}
+function clickDisk(p,i){
+  if(done)return;const t=tops(pos);
+  if(i!==t[p]&&(sel===null||sel===p)){
+    startTimer();inf++;LOG.push({tipo:"infracao",motivo:"mais_de_um_disco",disco:i+1,de:p,para:null,t:Date.now()-t0});
+    render();const el=document.querySelector(`.peg[data-p="${p}"]`);if(el)el.classList.add("err");return}
+  click(p)}
+function finish(){
+  done=true;clearInterval(tmr);const ms=Date.now()-t0,min=2**n-1;
+  
+  $("msg").textContent="Concluído!";
+  const txt=`Torre de Hanói — ${n} peças\nMovimentos: ${mov} (mínimo possível: ${min})\nInfrações: ${inf}\nDesvios: ${des}\nTempo: ${fmt(ms)}`;
+  tFim=ms;window.resultadoHanoi={tentativas:ATT.concat([snapshot()])}}
+$("lv").onclick=e=>{const b=e.target.closest("button[data-n]");if(!b)return;
+  n=+b.dataset.n;document.querySelectorAll("#lv [data-n]").forEach(x=>x.classList.toggle("on",x===b));reset()};
+$("rs").onclick=reset;
+$("btn-start").onclick=()=>{$("start-screen").style.display="none";$("test-area").style.display="block"};
+$("fin").onclick=()=>{
+  if(!fz){$("fin").textContent="Toque de novo para confirmar";fz=setTimeout(()=>{fz=null;$("fin").textContent="Finalizar teste"},4000);return}
+  clearTimeout(fz);fz=null;finalizar()};
+$("cp").onclick=async()=>{try{await navigator.clipboard.writeText($("rt").textContent);$("cp").textContent="Copiado!"}catch(e){$("cp").textContent="Não foi possível copiar"}};
+reset();
+validarToken().then(r=>{if(!r.ok){finalizado=true;done=true;document.querySelectorAll("button").forEach(b=>b.disabled=true);$("start-text").style.display="none";$("start-error").textContent=r.motivo||"Link inválido.";$("start-error").style.display="block"}else if(r.semToken)$("start-text").textContent="modo local (sem link do hub) — toque em começar"});
+</script>
+</body>
+</html>
