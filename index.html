@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Torre de Hanoi</title>
+<title>Torre de Hanói</title>
 <style>
 :root{--bg:#fff3b8;--fg:#6b5632;--card:#fffdf0;--mut:#a8946a;--rod:#8a6d4b;--acc:#f2c75c;--bad:#d9775b;--line:#f0e2b0;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 
@@ -63,13 +63,13 @@ button:disabled{opacity:.5;cursor:default}
     </div>
     <div class="tbase"></div>
   </div>
-  <h1 class="st">Torre de Hanoi</h1>
+  <h1 class="st">Torre de Hanói</h1>
   <p id="start-text">quando estiver pronto, toque em começar</p>
   <p id="start-error" style="display:none;color:var(--bad)"></p>
   <button id="btn-start">começar</button>
 </div>
 <div id="test-area" style="display:none">
-<h1>Torre de Hanoi</h1>
+<h1>Torre de Hanói</h1>
 <div class="bar" id="lv">
   <button data-n="4" class="on">4 peças</button>
   <button data-n="5">5 peças</button>
@@ -77,6 +77,7 @@ button:disabled{opacity:.5;cursor:default}
   <button id="rs" style="margin-left:auto">Reiniciar</button>
 </div>
 <div class="board" id="bd"></div>
+<div class="msg" id="msg">Toque em um pino para pegar o disco do topo e depois no pino de destino. Objetivo: levar todos os discos para o pino da direita.</div>
 <div class="res" id="res" hidden>
   <pre id="rt"></pre>
   <button id="cp">Copiar resultado</button>
@@ -100,6 +101,8 @@ async function validarToken(){
   return r||{ok:false,motivo:"Não foi possível validar o link."}}
 function registrarTentativa(t){if(!TOKEN)return;callFunction("registrar-print",{token:TOKEN,etapa:"tentativa"+t.tentativa,dados_cubo:t})}
 function concluirHub(dados){if(!TOKEN)return;callFunction("concluir-sessao",{token:TOKEN,dados:dados})}
+function mostrarErro(e){const p=document.createElement("pre");p.style.cssText="color:#b00;padding:12px;white-space:pre-wrap;position:relative;z-index:9";p.textContent="Erro no teste: "+(e&&e.message||e);document.body.prepend(p)}
+addEventListener("error",ev=>mostrarErro(ev.error||ev.message));
 const LOG=[],ATT=[];let tFim=0,finalizado=false,fz=null;const COL=["#5b2a3c","#2f55a8","#4c9a2a","#f4c20d","#ee7a1c","#d62828"];
 let n=4,pos,sel=null,mov=0,inf=0,des=0,t0=null,tmr=null,done=false,D=new Map();
 const $=id=>document.getElementById(id);
@@ -122,7 +125,7 @@ function reset(){
   $("msg").textContent="Toque em um pino para pegar o disco do topo e depois no pino de destino. Objetivo: levar todos os discos para o pino da direita.";
   render()}
 function render(){
-  const bd=$("bd");bd.innerHTML="";bd.style.setProperty("--n",n);const t=tops(pos);
+  const bd=$("bd");bd.innerHTML="";bd.style.setProperty("--n",n);{const dh=Math.max(32,Math.min(56,innerHeight*0.065));bd.style.setProperty("--dh",dh+"px");bd.style.setProperty("--rh",(n*(dh+4)+dh)+"px")}const t=tops(pos);
   for(let p=0;p<3;p++){
     const el=document.createElement("div");el.className="peg"+(sel===p?" sel":"");el.dataset.p=p;
     const ds=[];for(let i=0;i<n;i++)if(pos[i]===p)ds.push(i);
@@ -173,7 +176,7 @@ function finish(){
   done=true;clearInterval(tmr);const ms=Date.now()-t0,min=2**n-1;
   
   $("msg").textContent="Concluído!";
-  const txt=`Torre de Hanoi — ${n} peças\nMovimentos: ${mov} (mínimo possível: ${min})\nInfrações: ${inf}\nDesvios: ${des}\nTempo: ${fmt(ms)}`;
+  const txt=`Torre de Hanói — ${n} peças\nMovimentos: ${mov} (mínimo possível: ${min})\nInfrações: ${inf}\nDesvios: ${des}\nTempo: ${fmt(ms)}`;
   tFim=ms;window.resultadoHanoi={tentativas:ATT.concat([snapshot()])}}
 $("lv").onclick=e=>{const b=e.target.closest("button[data-n]");if(!b)return;
   n=+b.dataset.n;document.querySelectorAll("#lv [data-n]").forEach(x=>x.classList.toggle("on",x===b));reset()};
@@ -183,7 +186,7 @@ $("fin").onclick=()=>{
   if(!fz){$("fin").textContent="Toque de novo para confirmar";fz=setTimeout(()=>{fz=null;$("fin").textContent="Finalizar teste"},4000);return}
   clearTimeout(fz);fz=null;finalizar()};
 $("cp").onclick=async()=>{try{await navigator.clipboard.writeText($("rt").textContent);$("cp").textContent="Copiado!"}catch(e){$("cp").textContent="Não foi possível copiar"}};
-reset();
+try{reset()}catch(e){mostrarErro(e)}
 validarToken().then(r=>{if(!r.ok){finalizado=true;done=true;document.querySelectorAll("button").forEach(b=>b.disabled=true);$("start-text").style.display="none";$("start-error").textContent=r.motivo||"Link inválido.";$("start-error").style.display="block"}else if(r.semToken)$("start-text").textContent="modo local (sem link do hub) — toque em começar"});
 </script>
 </body>
